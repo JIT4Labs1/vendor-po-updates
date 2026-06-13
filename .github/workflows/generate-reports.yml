@@ -1,0 +1,61 @@
+name: Generate Vendor PO Reports
+
+on:
+  workflow_dispatch:
+    inputs:
+      vendor:
+        description: 'Vendor name (leave blank for all)'
+        required: false
+      dry_run:
+        description: 'Dry run (no emails sent)'
+        type: boolean
+        default: false
+      no_email:
+        description: 'Skip sending emails'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Generate vendor reports
+        env:
+          VTIGER_ACCESSKEY: ${{ secrets.VTIGER_ACCESSKEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.vendor }}" ]; then
+            ARGS="$ARGS --vendor '${{ github.event.inputs.vendor }}'"
+          fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          if [ "${{ github.event.inputs.no_email }}" = "true" ]; then
+            ARGS="$ARGS --no-email"
+          fi
+          eval python vendor_po_report.py $ARGS
+
+      - name: Commit and push updated forms
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Updated vendor PO forms"
+            git push
+          fi
