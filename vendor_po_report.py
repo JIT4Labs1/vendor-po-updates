@@ -80,6 +80,8 @@ def http_request(url, method="GET", headers=None, data=None, json_body=None):
         data = urllib.parse.urlencode(data).encode("utf-8")
     elif data and isinstance(data, str):
         data = data.encode("utf-8")
+    if "User-Agent" not in headers:
+        headers["User-Agent"] = "JIT4Labs-VendorPO/1.0"
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
         with urllib.request.urlopen(req, context=ctx, timeout=30) as resp:
