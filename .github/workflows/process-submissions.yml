@@ -1,0 +1,36 @@
+name: Process Vendor ETA Submissions
+
+on:
+  push:
+    paths:
+      - 'submissions/*.json'
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Process submission files
+        run: |
+          for f in submissions/*.json; do
+            [ -f "$f" ] || continue
+            echo "Processing: $f"
+            python vendor_po_report.py --process-updates --file "$f"
+          done
+
+      - name: Clean up processed submissions
+        run: |
+          if ls submissions/*.json 1>/dev/null 2>&1; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git rm submissions/*.json
+            git commit -m "Processed vendor ETA submissions"
+            git push
+          fi
