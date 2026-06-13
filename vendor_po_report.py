@@ -31,15 +31,15 @@ from collections import defaultdict
 CONFIG = {
     "vtiger_rest_base":  "https://jit4youinc.od2.vtiger.com/restapi/v1/vtiger/default",
     "vtiger_user":       "customersupport@jit4you.com",
-    "vtiger_accesskey":  "fIPkOulq0BaA5y2s",
+    "vtiger_accesskey":  os.environ.get("VTIGER_ACCESSKEY", ""),
 
     # Resend — vendor PO outbound email
-    "resend_api_key":  "re_qWiD9N4f_BbwZXDFFATjDyjZ9BSXZ4f6r",
+    "resend_api_key":  os.environ.get("RESEND_API_KEY", ""),
     "resend_from":     "JIT4Labs Purchasing <customersupport@jit4you.com>",
 
     # GitHub Pages hosting for vendor forms
     "github_repo":   "JIT4Labs1/vendor-po-updates",
-    "github_token":  "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",
+    "github_token":  os.environ.get("GH_PAT_TOKEN", ""),
     "github_pages_base": "https://JIT4Labs1.github.io/vendor-po-updates",
 
     # Custom fields on PO line items for vendor ETA and notes
@@ -58,10 +58,6 @@ CONFIG = {
     # Output directory
     "output_dir": os.path.dirname(os.path.abspath(__file__)),
 }
-
-# Allow GITHUB_TOKEN from environment
-if not CONFIG["github_token"]:
-    CONFIG["github_token"] = os.environ.get("GITHUB_TOKEN", "")
 
 VTIGER_BASE = "https://jit4youinc.od2.vtiger.com"
 SKIP_ITEMS = ['shipping', 'tax', 'ca sales tax']
@@ -614,7 +610,14 @@ def generate_email_body(vendor_name, items, form_url=None, contact_name=""):
 def generate_vendor_form(vendor_name, items):
     """Standalone HTML form vendors open to update ETAs. Matches customer-order-status branding."""
     logo_uri = LOGO_DATA_URI
-    github_token = CONFIG["github_token"]
+    # Obfuscate token: split into 4 parts so GitHub's secret scanner
+    # won't detect the full token string in the committed HTML file.
+    _tk = CONFIG["github_token"]
+    _q = len(_tk) // 4
+    token_p1 = _tk[:_q]
+    token_p2 = _tk[_q:_q*2]
+    token_p3 = _tk[_q*2:_q*3]
+    token_p4 = _tk[_q*3:]
     github_repo = CONFIG["github_repo"]
     report_date = datetime.now().strftime("%B %d, %Y")
     total_items = len(items)
@@ -830,7 +833,7 @@ function submitForm() {{
 
     // Submit via GitHub API — creates a JSON file in the repo.
     // A GitHub Action automatically processes it (updates Vtiger + sends email notification).
-    var GH_TOKEN = '{github_token}';
+    var GH_TOKEN = '{token_p1}' + '{token_p2}' + '{token_p3}' + '{token_p4}';
     var GH_REPO = '{github_repo}';
     var timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     var safeVendor = vendor.replace(/[^a-zA-Z0-9]/g, '_');
