@@ -53,7 +53,7 @@ CONFIG = {
     "exclude_vendors": ["Conmed"],
 
     # Rate limiting
-    "delay_between_calls": 0.3,
+    "delay_between_calls": 1.0,
 
     # Output directory
     "output_dir": os.path.dirname(os.path.abspath(__file__)),
@@ -70,7 +70,7 @@ LOGO_DATA_URI = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAjwCPAAD/4QC8RXhpZgAA
 # ─────────────────────────────────────────────
 # UTILITY
 # ─────────────────────────────────────────────
-def http_request(url, method="GET", headers=None, data=None, json_body=None):
+def http_request(url, method="GET", headers=None, data=None, json_body=None, max_retries=5):
     if headers is None:
         headers = {}
     if json_body is not None:
@@ -82,15 +82,22 @@ def http_request(url, method="GET", headers=None, data=None, json_body=None):
         data = data.encode("utf-8")
     if "User-Agent" not in headers:
         headers["User-Agent"] = "JIT4Labs-VendorPO/1.0"
-    req = urllib.request.Request(url, data=data, headers=headers, method=method)
-    try:
-        with urllib.request.urlopen(req, context=ctx, timeout=30) as resp:
-            body = resp.read().decode("utf-8")
-            return json.loads(body) if body.strip() else {}
-    except urllib.error.HTTPError as e:
-        error_body = e.read().decode("utf-8") if e.fp else ""
-        log(f"  HTTP {e.code} error: {error_body[:300]}")
-        raise
+
+    for attempt in range(max_retries):
+        req = urllib.request.Request(url, data=data, headers=headers, method=method)
+        try:
+            with urllib.request.urlopen(req, context=ctx, timeout=30) as resp:
+                body = resp.read().decode("utf-8")
+                return json.loads(body) if body.strip() else {}
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode("utf-8") if e.fp else ""
+            if e.code == 429 and attempt < max_retries - 1:
+                wait = 2 ** attempt  # 1s, 2s, 4s, 8s, 16s
+                log(f"  Rate limited (429), waiting {wait}s before retry {attempt+1}/{max_retries-1}...")
+                time.sleep(wait)
+                continue
+            log(f"  HTTP {e.code} error: {error_body[:300]}")
+            raise
 
 
 def log(msg):
@@ -121,7 +128,7 @@ class VtigerAPI:
             raise Exception(f"Vtiger query failed: {resp}")
         return resp["result"]
 
-    def query_all(self, sql_template, delay=0.3):
+    def query_all(self, sql_template, delay=1.0):
         all_results = []
         offset = 0
         while True:
@@ -186,17 +193,19 @@ def extract_open_pos(vt, dry_run=False, vendor_filter=None):
     so_id_to_acct = {s["id"]: s.get("account_id", "") for s in non_cancelled}
     so_ids_set = set(so_id_to_num.keys())
 
-    # Resolve customer names from account IDs
+    # Resolve customer names from account IDs (batch query instead of individual retrieves)
     log("  Resolving customer names...")
     acct_ids = set(v for v in so_id_to_acct.values() if v)
     acct_names = {}
+    # Fetch all accounts via paginated query — much fewer API calls than individual retrieves
+    all_accounts = vt.query_all("SELECT id, accountname FROM Accounts", delay=1.0)
+    for acct in all_accounts:
+        if acct.get("id") in acct_ids:
+            acct_names[acct["id"]] = acct.get("accountname", "Unknown")
+    # Fill in any missing ones
     for acct_id in acct_ids:
-        try:
-            acct = vt.retrieve(acct_id)
-            acct_names[acct_id] = acct.get("accountname", "Unknown")
-        except Exception:
+        if acct_id not in acct_names:
             acct_names[acct_id] = "Unknown"
-        time.sleep(CONFIG["delay_between_calls"])
     # Build SO ID -> customer name
     so_id_to_customer = {sid: acct_names.get(so_id_to_acct.get(sid, ""), "Unknown") for sid in so_ids_set}
     log(f"  Resolved {len(acct_names)} customer names")
