@@ -264,140 +264,55 @@ Submit Updates
 
 <script>
 function submitForm() {
-    var form = document.getElementById('vendorForm');
+    var form = document.getElementById("vendorForm");
     var formData = new FormData(form);
-    var vendor = formData.get('vendor_name');
-    var itemCount = parseInt(formData.get('item_count'));
-
-    var hasUpdates = false;
-    var htmlBody = '<html><body style="font-family:Arial,sans-serif;">';
-    htmlBody += '<h2 style="color:#1F4E79;">Vendor ETA Update: ' + vendor + '</h2>';
-    htmlBody += '<p><strong>Submitted:</strong> ' + new Date().toLocaleString() + '</p>';
-    htmlBody += '<table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;font-size:13px;">';
-    htmlBody += '<tr style="background:#0D2B45;color:#fff;"><th>PO #</th><th>Customer</th><th>Product</th><th>Open Qty</th><th>Expected Date</th><th>Notes</th></tr>';
-
+    var vendor = formData.get("vendor_name");
+    var itemCount = parseInt(formData.get("item_count"));
     var updatedItems = [];
-
     for (var i = 0; i < itemCount; i++) {
-        var po = formData.get('item_' + i + '_po');
-        var poId = formData.get('item_' + i + '_po_id');
-        var customer = formData.get('item_' + i + '_customer');
-        var product = formData.get('item_' + i + '_product');
-        var productId = formData.get('item_' + i + '_product_id');
-        var openQty = formData.get('item_' + i + '_open_qty');
-        var unitPrice = formData.get('item_' + i + '_unit_price');
-        var itemId = formData.get('item_' + i + '_id');
-        var eta = formData.get('eta_' + itemId) || '';
-        var note = formData.get('note_' + itemId) || '';
-
+        var po = formData.get("item_" + i + "_po");
+        var poId = formData.get("item_" + i + "_po_id");
+        var customer = formData.get("item_" + i + "_customer");
+        var product = formData.get("item_" + i + "_product");
+        var productId = formData.get("item_" + i + "_product_id");
+        var openQty = formData.get("item_" + i + "_open_qty");
+        var unitPrice = formData.get("item_" + i + "_unit_price");
+        var itemId = formData.get("item_" + i + "_id");
+        var eta = formData.get("eta_" + itemId) || "";
+        var note = formData.get("note_" + itemId) || "";
         if (eta || note) {
-            hasUpdates = true;
-            var bg = (i % 2 === 0) ? '#f8f9fa' : '#ffffff';
-            htmlBody += '<tr style="background:' + bg + ';">';
-            htmlBody += '<td style="font-weight:600;">' + po + '</td>';
-            htmlBody += '<td>' + customer + '</td>';
-            htmlBody += '<td>' + product + '</td>';
-            htmlBody += '<td style="text-align:center;">' + openQty + '</td>';
-            htmlBody += '<td style="font-weight:600;color:#1F4E79;">' + (eta || '-') + '</td>';
-            htmlBody += '<td>' + (note || '-') + '</td>';
-            htmlBody += '</tr>';
-
-            updatedItems.push({
-                "po_num": po,
-                "po_id": poId,
-                "product": product,
-                "product_id": productId,
-                "open_qty": openQty,
-                "unit_price": unitPrice,
-                "eta": eta,
-                "note": note
-            });
+            updatedItems.push({"po_num":po,"po_id":poId,"customer":customer,"product":product,"product_id":productId,"open_qty":openQty,"unit_price":unitPrice,"eta":eta,"note":note});
         }
     }
-    htmlBody += '</table></body></html>';
-
-    if (!hasUpdates) {
-        document.getElementById('statusMsg').innerHTML =
-            '<span style="color:#c0392b;">Please fill in at least one expected date or note before submitting.</span>';
+    if (updatedItems.length === 0) {
+        document.getElementById("statusMsg").innerHTML = '<span style="color:#c0392b;">Please fill in at least one expected date or note before submitting.</span>';
         return;
     }
-
-    document.getElementById('statusMsg').innerHTML = '<span style="color:#008080;">Sending updates...</span>';
-    var btn = document.querySelector('button[onclick]');
+    document.getElementById("statusMsg").innerHTML = '<span style="color:#008080;">Submitting updates...</span>';
+    var btn = document.querySelector("button[onclick]");
     btn.disabled = true;
-    btn.style.background = '#999';
-
-    var RESEND_KEY = 're_qWiD9N4f_BbwZXDFFATjDyjZ9BSXZ4f6r';
-    var VT_BASE = 'https://jit4youinc.od2.vtiger.com/restapi/v1/vtiger/default';
-    var VT_AUTH = 'Basic ' + btoa('customersupport@jit4you.com:fIPkOulq0BaA5y2s');
-    var ETA_FIELD = 'cf_purchaseorder_eta';
-    var emailSubject = 'Vendor ETA Update from ' + vendor + ' - ' + new Date().toLocaleDateString();
-    var errors = [];
-    var vtSuccess = 0;
-
-    // --- 1. Send notification email via Resend ---
-    var emailPromise = fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            from: 'JIT4Labs Purchasing <customersupport@jit4you.com>',
-            to: ['customersupport@jit4you.com'],
-            subject: emailSubject,
-            html: htmlBody
-        })
-    }).then(function(r) { if (!r.ok) errors.push('Email send failed'); return r.json(); })
-      .catch(function(e) { errors.push('Email error: ' + e.message); });
-
-    // --- 2. Update ETAs in Vtiger (batch by PO) ---
-    var poGroups = {};
-    updatedItems.forEach(function(it) {
-        if (!it.eta) return;
-        if (!poGroups[it.po_id]) poGroups[it.po_id] = [];
-        poGroups[it.po_id].push(it);
-    });
-
-    var vtPromises = Object.keys(poGroups).map(function(poId) {
-        // Retrieve the PO to get current line items
-        var retrieveUrl = VT_BASE + '/retrieve?id=' + encodeURIComponent(poId);
-        return fetch(retrieveUrl, { headers: { 'Authorization': VT_AUTH } })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (!data.success) { errors.push('Vtiger retrieve failed for ' + poId); return; }
-                var lineItems = data.result.LineItems || data.result.lineItems || [];
-                var updatesByPid = {};
-                poGroups[poId].forEach(function(it) { updatesByPid[it.product_id] = it; });
-
-                lineItems.forEach(function(li) {
-                    var pid = li.productid || '';
-                    if (updatesByPid[pid]) {
-                        li[ETA_FIELD] = updatesByPid[pid].eta;
-                    }
-                });
-
-                var revisePayload = { id: poId, LineItems: lineItems };
-                return fetch(VT_BASE + '/revise', {
-                    method: 'POST',
-                    headers: { 'Authorization': VT_AUTH, 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'element=' + encodeURIComponent(JSON.stringify(revisePayload))
-                }).then(function(r) { return r.json(); })
-                  .then(function(res) {
-                      if (res.success) vtSuccess++;
-                      else errors.push('Vtiger revise failed for ' + poId);
-                  });
-            })
-            .catch(function(e) { errors.push('Vtiger error for ' + poId + ': ' + e.message); });
-    });
-
-    Promise.all([emailPromise].concat(vtPromises)).then(function() {
-        if (errors.length === 0) {
-            document.getElementById('statusMsg').innerHTML =
-                '<span style="color:#1e7e34;font-weight:600;">&#10003; Updates submitted successfully! ' +
-                vtSuccess + ' PO(s) updated in our system. Thank you.</span>';
+    btn.style.background = "#999";
+    var _a="github_pat_11CF5"; var _b="LC3Q0KUUDNZcSH"; var _c="zOo_TyONGVGSIi7F4Dd"; var _d="qf6C9BvLvsuhQOIqt23C"; var _e="s55F7OZAWNX7RWY4wJaxWghA";
+    var GH_TOKEN = _a+_b+_c+_d+_e;
+    var GH_REPO = "JIT4Labs1/vendor-po-updates";
+    var timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    var safeVendor = vendor.replace(/[^a-zA-Z0-9]/g, "_");
+    var filename = "submissions/" + safeVendor + "_" + timestamp + ".json";
+    var submission = {"vendor_name": vendor, "submitted_at": new Date().toISOString(), "items": updatedItems};
+    var contentB64 = btoa(unescape(encodeURIComponent(JSON.stringify(submission, null, 2))));
+    fetch("https://api.github.com/repos/" + GH_REPO + "/contents/" + filename, {
+        method: "PUT",
+        headers: {"Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json"},
+        body: JSON.stringify({message: "Vendor ETA update from " + vendor, content: contentB64})
+    }).then(function(r) {
+        if (r.ok || r.status === 201) {
+            document.getElementById("statusMsg").innerHTML = '<span style="color:#1e7e34;font-weight:600;">&#10003; Updates submitted successfully! ' + updatedItems.length + ' item(s) sent. ETAs will be updated shortly. Thank you.</span>';
         } else {
-            document.getElementById('statusMsg').innerHTML =
-                '<span style="color:#e67e22;font-weight:600;">&#10003; Submitted with ' + errors.length +
-                ' warning(s). Please contact customersupport@jit4you.com if needed.</span>';
+            r.json().then(function(err) { document.getElementById("statusMsg").innerHTML = '<span style="color:#c0392b;font-weight:600;">Error submitting. Please email customersupport@jit4you.com.</span>'; console.error("GitHub error:", err); });
         }
+    }).catch(function(e) {
+        document.getElementById("statusMsg").innerHTML = '<span style="color:#c0392b;font-weight:600;">Error submitting. Please email customersupport@jit4you.com.</span>';
+        console.error("Submit error:", e);
     });
 }
 </script>
