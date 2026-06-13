@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'submissions/*.json'
+  workflow_dispatch:
 
 jobs:
   process:
@@ -18,6 +19,10 @@ jobs:
           python-version: '3.11'
 
       - name: Process submission files
+        env:
+          VTIGER_ACCESSKEY: ${{ secrets.VTIGER_ACCESSKEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
         run: |
           for f in submissions/*.json; do
             [ -f "$f" ] || continue
