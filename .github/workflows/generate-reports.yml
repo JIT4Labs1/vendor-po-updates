@@ -57,5 +57,6 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "Updated vendor PO forms"
+            git pull --rebase
             git push
           fi
