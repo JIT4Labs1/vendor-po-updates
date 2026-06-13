@@ -39,7 +39,7 @@ CONFIG = {
 
     # GitHub Pages hosting for vendor forms
     "github_repo":   "JIT4Labs1/vendor-po-updates",
-    "github_token":  "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",
+    "github_token":  "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",
     "github_pages_base": "https://JIT4Labs1.github.io/vendor-po-updates",
 
     # Custom fields on PO line items for vendor ETA and notes
@@ -509,7 +509,7 @@ def generate_email_body(vendor_name, items, form_url=None, contact_name=""):
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
 <tr>
 <td style="vertical-align:middle;">
-<img src="https://jit4labs1.github.io/vendor-po-updates/jit4you_inc__logo.jpeg" alt="JIT4Labs" width="140" style="display:block;height:auto;">
+<img src="https://jit4labs1.github.io/vendor-po-updates/JIT4LABS-Logo.jpg" alt="JIT4Labs" width="140" style="display:block;height:auto;">
 </td>
 <td style="text-align:right;vertical-align:middle;">
 <p style="margin:0;font-size:20px;font-weight:700;color:#101E3E;letter-spacing:-0.3px;">Open Purchase Orders</p>
@@ -684,7 +684,7 @@ def generate_vendor_form(vendor_name, items):
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
 <tr>
 <td style="vertical-align:middle;">
-<img src="https://jit4labs1.github.io/vendor-po-updates/jit4you_inc__logo.jpeg" alt="JIT4Labs" width="140" style="display:block;height:auto;">
+<img src="https://jit4labs1.github.io/vendor-po-updates/JIT4LABS-Logo.jpg" alt="JIT4Labs" width="140" style="display:block;height:auto;">
 </td>
 <td style="text-align:right;vertical-align:middle;">
 <p style="margin:0;font-size:20px;font-weight:700;color:#101E3E;letter-spacing:-0.3px;">Open Purchase Orders &mdash; Update ETAs</p>
