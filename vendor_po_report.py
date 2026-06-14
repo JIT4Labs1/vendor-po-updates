@@ -52,6 +52,20 @@ CONFIG = {
     # Vendors to exclude from reports
     "exclude_vendors": ["Conmed"],
 
+    # Only send emails to these vendors (leave empty to send to all non-excluded)
+    "include_vendors": [
+        "ALDX HOLDING CORPORATION",
+        "Allora Biotech LLC",
+        "ClearChem Diagnostics, Inc",
+        "PMA Services",
+    ],
+
+    # Override vendor email addresses (vendor name -> email)
+    "email_overrides": {
+        "ALDX HOLDING CORPORATION": "sales@aldxholding.com",
+        "PMA Services": "debbie@pmaservices.com",
+    },
+
     # Rate limiting
     "delay_between_calls": 1.0,
 
@@ -1234,12 +1248,17 @@ def main():
     sent_count = 0
 
     exclude = [v.lower() for v in CONFIG.get("exclude_vendors", [])]
+    include = [v.lower() for v in CONFIG.get("include_vendors", [])]
+    email_overrides = CONFIG.get("email_overrides", {})
 
     for vendor_name, items in sorted(vendor_items.items()):
         if vendor_name.lower() in exclude:
             log(f"Skipping {vendor_name} (excluded)")
             continue
-        vendor_email = items[0]["vendor_email"] if items else ""
+        if include and vendor_name.lower() not in [v.lower() for v in CONFIG.get("include_vendors", [])]:
+            log(f"Skipping {vendor_name} (not in include_vendors list)")
+            continue
+        vendor_email = email_overrides.get(vendor_name, items[0]["vendor_email"] if items else "")
         log(f"Generating report for {vendor_name} ({len(items)} items, email: {vendor_email or 'N/A'})...")
 
         # Generate interactive HTML form
