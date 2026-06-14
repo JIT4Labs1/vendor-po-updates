@@ -1,6 +1,8 @@
 name: Generate Vendor PO Reports
 
 on:
+  schedule:
+    - cron: '55 13 * * 1'  # Every Monday at 6:55 AM Pacific (PDT; shifts to 5:55 AM PST in winter)
   workflow_dispatch:
     inputs:
       vendor:
