@@ -1,0 +1,50 @@
+{
+  "vendor_name": "ClearChem Diagnostics, Inc",
+  "submitted_at": "2026-06-15T23:00:14.858Z",
+  "items": [
+    {
+      "po_num": "PO646",
+      "po_id": "14x150062",
+      "customer": "Mercedes Scientific",
+      "product": "Beckman Coulter 81906 Access Substrate",
+      "product_id": "6x848",
+      "open_qty": "20",
+      "unit_price": "34.0",
+      "eta": "2026-06-24",
+      "note": "delayed due to several high volume orders"
+    },
+    {
+      "po_num": "PO652",
+      "po_id": "14x151740",
+      "customer": "Radiance Diagnostics",
+      "product": "Beckman Coulter 33005 Access Vitamin B12 Calibrator (S0-S5)",
+      "product_id": "6x831",
+      "open_qty": "1",
+      "unit_price": "21.8",
+      "eta": "2026-06-24",
+      "note": ""
+    },
+    {
+      "po_num": "PO666",
+      "po_id": "14x153742",
+      "customer": "Mercedes Scientific",
+      "product": "Beckman Coulter 81906 Access Substrate",
+      "product_id": "6x848",
+      "open_qty": "20",
+      "unit_price": "34.0",
+      "eta": "2026-06-24",
+      "note": "delayed due to several high volume orders"
+    },
+    {
+      "po_num": "PO666",
+      "po_id": "14x153742",
+      "customer": "Mercedes Scientific",
+      "product": "Beckman Coulter 33830 Access Total T3, 100 Determinations",
+      "product_id": "6x834",
+      "open_qty": "5",
+      "unit_price": "39.4",
+      "eta": "2026-06-24",
+      "note": ""
+    }
+  ]
+}
