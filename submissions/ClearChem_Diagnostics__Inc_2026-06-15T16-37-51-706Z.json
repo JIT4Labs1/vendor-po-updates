@@ -1,0 +1,28 @@
+{
+  "vendor_name": "ClearChem Diagnostics, Inc",
+  "submitted_at": "2026-06-15T16:37:51.706Z",
+  "items": [
+    {
+      "po_num": "PO646",
+      "po_id": "14x150062",
+      "customer": "Mercedes Scientific",
+      "product": "Beckman Coulter 81906 Access Substrate",
+      "product_id": "6x848",
+      "open_qty": "20",
+      "unit_price": "34.0",
+      "eta": "",
+      "note": "Unknow Eta "
+    },
+    {
+      "po_num": "PO666",
+      "po_id": "14x153742",
+      "customer": "Mercedes Scientific",
+      "product": "Beckman Coulter 81906 Access Substrate",
+      "product_id": "6x848",
+      "open_qty": "20",
+      "unit_price": "34.0",
+      "eta": "",
+      "note": "Unknow Eta "
+    }
+  ]
+}
