@@ -1,0 +1,17 @@
+{
+  "vendor_name": "ALDX HOLDING CORPORATION",
+  "submitted_at": "2026-06-22T22:12:30.108Z",
+  "items": [
+    {
+      "po_num": "PO676",
+      "po_id": "14x155746",
+      "customer": "Mercedes Scientific",
+      "product": "Beckman Coulter MU919400 Electrode, Olympus, NA+",
+      "product_id": "6x101649",
+      "open_qty": "2",
+      "unit_price": "345.0",
+      "eta": "2026-06-26",
+      "note": "Just have Qty 1, per Vendor 2nd Qty is delayed - no ETA  Originally told us early this week."
+    }
+  ]
+}
