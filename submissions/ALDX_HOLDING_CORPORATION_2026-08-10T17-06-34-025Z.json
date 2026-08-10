@@ -1,0 +1,17 @@
+{
+  "vendor_name": "ALDX HOLDING CORPORATION",
+  "submitted_at": "2026-08-10T17:06:34.025Z",
+  "items": [
+    {
+      "po_num": "PO791",
+      "po_id": "14x170412",
+      "customer": "Radiance Diagnostics",
+      "product": "Beckman Coulter AUH1011 Buffer 4 X 2000 mL",
+      "product_id": "6x32142",
+      "open_qty": "1",
+      "unit_price": "185.1",
+      "eta": "2026-08-14",
+      "note": "Expecting product this week Ground.  ETA we will Request Label is  Wed-Friday "
+    }
+  ]
+}
