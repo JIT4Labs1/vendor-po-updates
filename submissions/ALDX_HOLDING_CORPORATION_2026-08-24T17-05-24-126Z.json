@@ -1,0 +1,17 @@
+{
+  "vendor_name": "ALDX HOLDING CORPORATION",
+  "submitted_at": "2026-08-24T17:05:24.127Z",
+  "items": [
+    {
+      "po_num": "PO791",
+      "po_id": "14x170412",
+      "customer": "Radiance Diagnostics",
+      "product": "Beckman Coulter AUH1012 ISE Mid Standard",
+      "product_id": "6x101636",
+      "open_qty": "1",
+      "unit_price": "237.1",
+      "eta": "",
+      "note": "8/24/2026 notified Jit via email we can not secure this product"
+    }
+  ]
+}
